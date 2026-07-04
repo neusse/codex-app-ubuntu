@@ -11,22 +11,22 @@ fail() {
 
 printf 'checking repository path...\n'
 case "$repo_root" in
-  "$HOME/Downloads"*|"$HOME/.local/share/codex-mac-port"*|"$HOME/.local/share/codex-app-ubuntu"*)
+  "$HOME/Downloads"*|"$HOME/.local/share/codex-mac-port"*|"$HOME/.local/share/codex-app-fedora"*|"$HOME/.local/share/codex-app-ubuntu"*)
     fail "repo is inside a sensitive/generated directory: $repo_root"
     ;;
 esac
 
 printf 'checking for blocked generated paths...\n'
 blocked_path_regex='(^|/)(app-unpacked|app-linux[^/]*|linux-port[^/]*|native-linux[^/]*|runner[^/]*|user-data[^/]*|logs|screenshots|backups|tmp|dist|build|out|node_modules|\.codex)(/|$)'
-if git ls-files -co --exclude-standard | LC_ALL=C grep -E "$blocked_path_regex" >/tmp/codex-app-ubuntu-audit-paths 2>/dev/null; then
-  cat /tmp/codex-app-ubuntu-audit-paths >&2
+if git ls-files -co --exclude-standard | LC_ALL=C grep -E "$blocked_path_regex" >/tmp/codex-app-fedora-audit-paths 2>/dev/null; then
+  cat /tmp/codex-app-fedora-audit-paths >&2
   fail "blocked generated path present"
 fi
 
 printf 'checking for blocked file names and extensions...\n'
 blocked_file_regex='(^|/)(auth\.json|hosts\.yml|client_secret.*\.json|.*secret.*|.*\.dmg|.*\.asar|.*\.app|.*\.node|.*\.so|.*\.dylib|.*\.dll|.*\.exe|.*\.icns|.*\.png|.*\.jpe?g|.*\.webp|.*\.xwd|.*\.pnm|.*\.pem|.*\.key|.*\.p12|.*\.pfx|id_rsa.*|id_ed25519.*)$'
-if git ls-files -co --exclude-standard | LC_ALL=C grep -Ei "$blocked_file_regex" >/tmp/codex-app-ubuntu-audit-files 2>/dev/null; then
-  cat /tmp/codex-app-ubuntu-audit-files >&2
+if git ls-files -co --exclude-standard | LC_ALL=C grep -Ei "$blocked_file_regex" >/tmp/codex-app-fedora-audit-files 2>/dev/null; then
+  cat /tmp/codex-app-fedora-audit-files >&2
   fail "blocked file present"
 fi
 
@@ -46,6 +46,21 @@ if rg -n --hidden --no-ignore-vcs \
   -g '!dist/**' \
   -g '!build/**' \
   -g '!out/**' \
+  -g '!*.dmg' \
+  -g '!*.asar' \
+  -g '!*.app' \
+  -g '!*.node' \
+  -g '!*.so' \
+  -g '!*.dylib' \
+  -g '!*.dll' \
+  -g '!*.exe' \
+  -g '!*.icns' \
+  -g '!*.png' \
+  -g '!*.jpg' \
+  -g '!*.jpeg' \
+  -g '!*.webp' \
+  -g '!*.xwd' \
+  -g '!*.pnm' \
   -e 'sk-[A-Za-z0-9_-]{20,}' \
   -e 'gh[pousr]_[A-Za-z0-9_]{20,}' \
   -e 'github_pat_[A-Za-z0-9_]{20,}' \
@@ -53,8 +68,8 @@ if rg -n --hidden --no-ignore-vcs \
   -e 'AKIA[0-9A-Z]{16}' \
   -e '-----BEGIN (RSA |OPENSSH |EC |DSA |)PRIVATE KEY-----' \
   -e '(access_token|refresh_token|id_token|OPENAI_API_KEY|CODEX_ACCESS_TOKEN)[[:space:]]*[:=][[:space:]]*["'\'']?[A-Za-z0-9._~+/=-]{12,}' \
-  . >/tmp/codex-app-ubuntu-audit-secrets 2>/dev/null; then
-  cat /tmp/codex-app-ubuntu-audit-secrets >&2
+  . >/tmp/codex-app-fedora-audit-secrets 2>/dev/null; then
+  cat /tmp/codex-app-fedora-audit-secrets >&2
   fail "token-like content found"
 fi
 
